@@ -103,7 +103,7 @@ public class ServiceTestActivity extends Activity {
     	for (Iterator<RunningAppProcessInfo> iterator = runningProcessList.iterator(); iterator.hasNext();) {
     		procInfo = iterator.next();
     		BasicProgramUtil programUtil = buildProgramUtilSimpleInfo(procInfo.pid, procInfo.processName);
-    		programUtil.bAutoClose = settings.getBoolean(programUtil.getProgramName(), false); 
+    		programUtil.bAutoClose = settings.getBoolean(procInfo.processName, false); 
     		infoList.add(programUtil);
 		}	
 	}
@@ -113,7 +113,7 @@ public class ServiceTestActivity extends Activity {
 	   	for (Iterator<BasicProgramUtil> iterator = infoList.iterator(); iterator.hasNext();) {
 	   		BasicProgramUtil info = iterator.next();
 	   		if (info.bAutoClose) {
-	   			editor.putBoolean(info.getProgramName(), true);  
+	   			editor.putBoolean(info.getProcessName(), true);  
 	   		}
 		}
 	   	
