@@ -17,13 +17,14 @@ import android.widget.ImageView;
 import android.widget.TextView;    
     
 public class MyAdapter extends BaseAdapter {    
-    private LayoutInflater mInflater;    
+    private LayoutInflater mInflater;
+    List<BasicProgramUtil> m_listProc;
     private List<Map<String, Object>> mData;    
     public static Map<Integer, Boolean> isSelected;    
     
-    public MyAdapter(Context context) {    
-        mInflater = LayoutInflater.from(context);    
-        init();    
+    public MyAdapter(Context context, List<BasicProgramUtil> list) {    
+        mInflater = LayoutInflater.from(context);
+		this.m_listProc = list;
     }    
     
     //初始化    
@@ -42,17 +43,20 @@ public class MyAdapter extends BaseAdapter {
         }    
     }    
     
-    public int getCount() {    
-        return mData.size();    
-    }    
-    
-    public Object getItem(int position) {    
-        return null;    
-    }    
-    
-    public long getItemId(int position) {    
-        return 0;    
-    }    
+	public int getCount() {
+		// TODO Auto-generated method stub
+		return m_listProc.size();
+	}
+
+	public Object getItem(int position) {
+		// TODO Auto-generated method stub
+		return m_listProc.get(position);
+	}
+
+	public long getItemId(int position) {
+		// TODO Auto-generated method stub
+		return position;
+	}
     
     public View getView(int position, View convertView, ViewGroup parent) {    
         ViewHolder holder = null;    
@@ -66,11 +70,15 @@ public class MyAdapter extends BaseAdapter {
             convertView.setTag(holder);    
         } else {    
             holder = (ViewHolder) convertView.getTag();    
-        }    
-        holder.img.setBackgroundResource((Integer) mData.get(position).get(    
-                "img"));    
-        holder.title.setText(mData.get(position).get("title").toString());    
-        holder.cBox.setChecked(isSelected.get(position));    
+        }
+        
+		final BasicProgramUtil pUtils = m_listProc.get(position);
+		// 设置图标
+		holder.img.setImageDrawable(pUtils.getIcon());
+		// 设置程序名
+		holder.title.setText(pUtils.getProgramName());
+        
+        holder.cBox.setChecked(false);    
         return convertView;    
     }    
     

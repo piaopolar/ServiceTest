@@ -3,7 +3,13 @@
  */
 package com.test.service;
 
+import java.util.Calendar;
+
+import com.test.*;
+
+import android.content.pm.ApplicationInfo;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 
 public class BasicProgramUtil{
     
