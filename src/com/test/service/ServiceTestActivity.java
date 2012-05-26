@@ -44,7 +44,8 @@ public class ServiceTestActivity extends Activity {
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
+
+		this.startService(new Intent(this, CountService.class));
 
         // 获取包管理器，主要通过包管理器获取程序的图标和程序名
     	packageManager = this.getPackageManager();
@@ -75,7 +76,6 @@ public class ServiceTestActivity extends Activity {
 			}
 		});
 
-		this.startService(new Intent(this, CountService.class));
 	}
 
 	@Override
