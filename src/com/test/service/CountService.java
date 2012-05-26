@@ -23,12 +23,12 @@ public class CountService extends Service {
 
             public void run() {
                 while (!threadDisable) {
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                    }
-                    count++;
-                    Log.v("CountService", "Count is " + count);
+//                    try {
+//                        Thread.sleep(1000);
+//                    } catch (InterruptedException e) {
+//                    }
+//                    count++;
+//                    Log.v("CountService", "Count is " + count);
                 }
             }
         }).start();

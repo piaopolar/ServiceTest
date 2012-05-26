@@ -19,6 +19,7 @@ public class BasicProgramUtil{
     private Drawable icon;                            // 程序图标
     private String programName;                        // 程序名称
     private String processName;
+    public Boolean bAutoClose;
     
     private String cpuMemString;
     

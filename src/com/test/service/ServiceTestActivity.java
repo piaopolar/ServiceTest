@@ -15,6 +15,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
@@ -36,6 +37,7 @@ public class ServiceTestActivity extends Activity {
 	private static PackageUtil packageUtil = null;
 	ProcessMemoryUtil processMemoryUtil = null;	
 	
+	SharedPreferences settings;
 	
 	/** Called when the activity is first created. */
 	@Override
@@ -51,7 +53,9 @@ public class ServiceTestActivity extends Activity {
         
 		// 获取正在运行的进程列表		
 		runningProcessList = new ArrayList<RunningAppProcessInfo>();
-    	infoList = new ArrayList<BasicProgramUtil>();		
+    	infoList = new ArrayList<BasicProgramUtil>();
+    	
+    	settings = getSharedPreferences("MyConfig", 0);
 		
     	InitProcList();
 
@@ -67,7 +71,7 @@ public class ServiceTestActivity extends Activity {
 				ViewHolder vHollder = (ViewHolder) view.getTag();
 				// 在每次获取点击的item时将对于的checkbox状态改变，同时修改map的值。
 				vHollder.cBox.toggle();
-				MyAdapter.isSelected.put(position, vHollder.cBox.isChecked());
+				infoList.get(position).bAutoClose = !infoList.get(position).bAutoClose;
 			}
 		});
 
@@ -77,7 +81,10 @@ public class ServiceTestActivity extends Activity {
 	@Override
 	protected void onDestroy() {
 		super.onDestroy();
-		this.stopService(new Intent(this, CountService.class));
+		
+		SaveAutoCloseInfo();
+		
+//		this.stopService(new Intent(this, CountService.class));
 	}
 	
 	public void InitProcList() {
@@ -96,9 +103,21 @@ public class ServiceTestActivity extends Activity {
     	for (Iterator<RunningAppProcessInfo> iterator = runningProcessList.iterator(); iterator.hasNext();) {
     		procInfo = iterator.next();
     		BasicProgramUtil programUtil = buildProgramUtilSimpleInfo(procInfo.pid, procInfo.processName);
+    		programUtil.bAutoClose = settings.getBoolean(programUtil.getProgramName(), false); 
     		infoList.add(programUtil);
+		}	
+	}
+	
+	public void SaveAutoCloseInfo() {
+		SharedPreferences.Editor editor = settings.edit();  
+	   	for (Iterator<BasicProgramUtil> iterator = infoList.iterator(); iterator.hasNext();) {
+	   		BasicProgramUtil info = iterator.next();
+	   		if (info.bAutoClose) {
+	   			editor.putBoolean(info.getProgramName(), true);  
+	   		}
 		}
-    	   	
+	   	
+	   	editor.commit();  
 	}
 	
 	/*
