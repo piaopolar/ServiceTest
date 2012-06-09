@@ -3,5 +3,9 @@
 
     <string name="hello">Hello World, ServiceTestActivity!</string>
     <string name="app_name">ServiceTest</string>
+    <string name="reflash">reflash</string>
+    <string name="setting">Setting</string>
+    <string name="service_on">Service On</string>
+    <string name="back">back</string>
 
 </resources>

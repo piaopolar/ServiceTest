@@ -7,7 +7,9 @@ import java.util.Calendar;
 
 import com.test.*;
 
+import android.content.Context;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.graphics.drawable.Drawable;
 import android.util.Log;
 
@@ -19,6 +21,7 @@ public class BasicProgramUtil{
     private Drawable icon;                            // 程序图标
     private String programName;                        // 程序名称
     private String processName;
+    private String packageName;
     public Boolean bAutoClose;
     
     private String cpuMemString;
@@ -27,6 +30,15 @@ public class BasicProgramUtil{
         icon = null;
         programName = "";    
         processName = "";    
+        cpuMemString = "";
+    }
+    
+    public BasicProgramUtil(Context context, PackageInfo packageInfo)
+    {
+    	icon = packageInfo.applicationInfo.loadIcon(context.getPackageManager());
+    	programName = packageInfo.applicationInfo.loadLabel(context.getPackageManager()).toString();
+    	processName = packageInfo.applicationInfo.processName;
+    	packageName = packageInfo.applicationInfo.packageName;
         cpuMemString = "";
     }
     
@@ -61,4 +73,12 @@ public class BasicProgramUtil{
     public void setProcessName(String processName) {
         this.processName = processName;
     }
+
+	public String getPackageName() {
+		return packageName;
+	}
+
+	public void setPackageName(String packageName) {
+		this.packageName = packageName;
+	}
 }

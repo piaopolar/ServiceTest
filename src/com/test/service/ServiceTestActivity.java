@@ -17,25 +17,19 @@ import android.app.ActivityManager.RunningAppProcessInfo;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.View.OnClickListener;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 
 public class ServiceTestActivity extends Activity {
 
-	// 获取包管理器和活动管理器的实例
-	private static PackageManager packageManager = null;
-	private static ActivityManager activityManager = null;
-
-	// 正在运行的进程列表
-	private static List<RunningAppProcessInfo> runningProcessList = null;
-	private static List<BasicProgramUtil> infoList = null;
-	private static PackageUtil packageUtil = null;
-	ProcessMemoryUtil processMemoryUtil = null;
+	private static List<BasicProgramUtil> infoList = new ArrayList<BasicProgramUtil>();;
 
 	SharedPreferences settings;
 
@@ -45,18 +39,11 @@ public class ServiceTestActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
 
-		this.startService(new Intent(this, CountService.class));
-
-		// 获取包管理器，主要通过包管理器获取程序的图标和程序名
-		packageManager = this.getPackageManager();
-		activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-		packageUtil = new PackageUtil(this);
-
-		// 获取正在运行的进程列表
-		runningProcessList = new ArrayList<RunningAppProcessInfo>();
-		infoList = new ArrayList<BasicProgramUtil>();
-
 		settings = getSharedPreferences("MyConfig", 0);
+
+		if (settings.getBoolean("Service On", true)) {
+			this.startService(new Intent(this, CountService.class));
+		}
 
 		ListView list = (ListView) findViewById(R.id.lv);
 		list.setOnItemClickListener(new OnItemClickListener() {
@@ -74,12 +61,26 @@ public class ServiceTestActivity extends Activity {
 			}
 		});
 
+		findViewById(R.id.reflash).setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+				ReflashProcList();
+			}
+		});
+
+		findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
+			public void onClick(View v) {
+
+				Intent SecondPage = new Intent(ServiceTestActivity.this,
+						SettingActivity.class);
+				startActivity(SecondPage);
+			}
+		});
 	}
 
 	protected void onResume() {
-		super.onResume();  
 
 		ReflashProcList();
+		super.onResume();
 		Log.v("CountService", "onResume");
 	}
 
@@ -87,36 +88,33 @@ public class ServiceTestActivity extends Activity {
 	protected void onDestroy() {
 		super.onDestroy();
 
-//		SaveAutoCloseInfo();
+		// SaveAutoCloseInfo();
 
 		// this.stopService(new Intent(this, CountService.class));
 	}
 
 	public void ReflashProcList() {
 
-		if (!runningProcessList.isEmpty()) {
-			runningProcessList.clear();
-		}
-		
 		if (!infoList.isEmpty()) {
 			infoList.clear();
 		}
 
-		// 获取正在运行的进程列表
-		runningProcessList = activityManager.getRunningAppProcesses();
-		// 获取当前进程的内存和CPU信息
-		processMemoryUtil = new ProcessMemoryUtil();
-		processMemoryUtil.initPMUtil();
+		List<PackageInfo> lstPackageInfo = getPackageManager()
+				.getInstalledPackages(0);
 
-		RunningAppProcessInfo procInfo = null;
-		for (Iterator<RunningAppProcessInfo> iterator = runningProcessList
-				.iterator(); iterator.hasNext();) {
-			procInfo = iterator.next();
-			BasicProgramUtil programUtil = buildProgramUtilSimpleInfo(
-					procInfo.pid, procInfo.processName);
-			programUtil.bAutoClose = settings.getBoolean(procInfo.processName,
-					false);
-			infoList.add(programUtil);
+		for (Iterator<PackageInfo> iterator = lstPackageInfo.iterator(); iterator
+				.hasNext();) {
+			PackageInfo packageInfo = iterator.next();
+			BasicProgramUtil programUtil = new BasicProgramUtil(this,
+					packageInfo);
+			programUtil.bAutoClose = settings.getBoolean(
+					programUtil.getProcessName(), false);
+
+			if (settings.getBoolean("ShowSystemApp", false)) {
+				infoList.add(programUtil);
+			} else if ((packageInfo.applicationInfo.flags & ApplicationInfo.FLAG_SYSTEM) == 0) {
+				infoList.add(programUtil);
+			}
 		}
 
 		ListView list = (ListView) findViewById(R.id.lv);
@@ -124,8 +122,12 @@ public class ServiceTestActivity extends Activity {
 		list.setAdapter(adapter);
 		list.setItemsCanFocus(false);
 		list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
-		
-		Log.v("CountService", "RunList " + String.valueOf(runningProcessList.size()));
+	}
+
+	private BasicProgramUtil BasicProgramUtil(
+			ServiceTestActivity serviceTestActivity, PackageInfo next) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 	public void SaveAutoCloseInfo() {
@@ -139,38 +141,5 @@ public class ServiceTestActivity extends Activity {
 		}
 
 		editor.commit();
-	}
-
-	/*
-	 * 为进程获取基本的信息
-	 */
-	public BasicProgramUtil buildProgramUtilSimpleInfo(int procId,
-			String procNameString) {
-
-		BasicProgramUtil programUtil = new BasicProgramUtil();
-		programUtil.setProcessName(procNameString);
-
-		// 根据进程名，获取应用程序的ApplicationInfo对象
-		ApplicationInfo tempAppInfo = packageUtil
-				.getApplicationInfo(procNameString);
-
-		if (tempAppInfo != null) {
-			// 为进程加载图标和程序名称
-			programUtil.setIcon(tempAppInfo.loadIcon(packageManager));
-			programUtil.setProgramName(tempAppInfo.loadLabel(packageManager)
-					.toString());
-		} else {
-			// 如果获取失败，则使用默认的图标和程序名
-			programUtil.setIcon(getApplicationContext().getResources()
-					.getDrawable(android.R.drawable.btn_star));
-			programUtil.setProgramName(procNameString);
-			// Log.v(ProcMgrActivity.TAG_SYSTEMASSIST, procNameString);
-		}
-
-		String str = processMemoryUtil.getMemInfoByPid(procId);
-		// Log.v(TAG_SYSTEMASSIST, "Time --- > " +
-		// Calendar.getInstance().getTimeInMillis());
-		programUtil.setCpuMemString(str);
-		return programUtil;
 	}
 }

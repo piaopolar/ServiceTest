@@ -39,14 +39,19 @@ public class CountService extends Service {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-				if (wifiManager.isWifiEnabled()) {
-					wifiManager.setWifiEnabled(false);
-				}
+				
+				SharedPreferences settings;
+				settings  = getSharedPreferences("MyConfig", 0);
+				if (settings.getBoolean("Close Wifi", true)) {
 
+					WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
+					if (wifiManager.isWifiEnabled()) {
+						wifiManager.setWifiEnabled(false);
+					}
+				}
+				
 				ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 
-				SharedPreferences settings = getSharedPreferences("MyConfig", 0);
 				List<RunningAppProcessInfo> runningProcessList = null;
 
 				// 获取正在运行的进程列表
