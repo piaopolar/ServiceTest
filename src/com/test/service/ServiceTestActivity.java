@@ -14,6 +14,10 @@ import android.os.Bundle;
 
 import android.app.Activity;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.app.admin.DeviceAdminReceiver;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
@@ -29,6 +33,8 @@ import android.widget.ListView;
 
 public class ServiceTestActivity extends Activity {
 
+	private static final int REQUEST_ENABLE = 0;
+
 	private static List<BasicProgramUtil> infoList = new ArrayList<BasicProgramUtil>();;
 
 	SharedPreferences settings;
@@ -42,7 +48,7 @@ public class ServiceTestActivity extends Activity {
 		settings = getSharedPreferences("MyConfig", 0);
 
 		if (settings.getBoolean("Service On", true)) {
-			this.startService(new Intent(this, CountService.class));
+			// this.startService(new Intent(this, CountService.class));
 		}
 
 		ListView list = (ListView) findViewById(R.id.lv);
@@ -63,6 +69,18 @@ public class ServiceTestActivity extends Activity {
 
 		findViewById(R.id.reflash).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
+				DevicePolicyManager policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+				ComponentName componentName = new ComponentName(
+						ServiceTestActivity.this, AdminReceiver.class);
+
+				boolean active = policyManager.isAdminActive(componentName);
+
+				if (active) {
+
+					policyManager.removeActiveAdmin(componentName);
+
+				}
+
 				ReflashProcList();
 			}
 		});
@@ -70,11 +88,58 @@ public class ServiceTestActivity extends Activity {
 		findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 
-				Intent SecondPage = new Intent(ServiceTestActivity.this,
-						SettingActivity.class);
-				startActivity(SecondPage);
+				Lock(v);
+
+				//
+				// Intent SecondPage = new Intent(ServiceTestActivity.this,
+				// SettingActivity.class);
+				// startActivity(SecondPage);
 			}
 		});
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (REQUEST_ENABLE == requestCode) {
+			if (resultCode == Activity.RESULT_OK) {
+				DevicePolicyManager policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+				ComponentName componentName = new ComponentName(this,
+						AdminReceiver.class);
+
+				boolean active = policyManager.isAdminActive(componentName);
+				if (active) {
+					policyManager.lockNow();
+				}
+			} else {
+			}
+		}
+	}
+
+	public void Lock(View view) {
+		DevicePolicyManager policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+		ComponentName componentName = new ComponentName(this,
+				AdminReceiver.class);
+
+		boolean active = policyManager.isAdminActive(componentName);
+
+		if (!active) {
+
+			// 启动设备管理(隐式Intent) - 在AndroidManifest.xml中设定相应过滤器
+			Intent intent = new Intent(
+					DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+
+			// 权限列表
+			intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN,
+					componentName);
+
+			// 描述(additional explanation)
+			intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+					"------ 其他描述 ------");
+
+			startActivityForResult(intent, REQUEST_ENABLE);
+		} else {
+			policyManager.lockNow();// 直接锁屏
+		}
 	}
 
 	protected void onResume() {

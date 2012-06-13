@@ -3,15 +3,15 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="horizontal" >
-
+
     <ImageButton
-        android:id="@+id/imageButton1"
+        android:id="@+id/btnLockScr"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/scene_standby" />
-
+
     <ImageButton
-        android:id="@+id/imageButton2"
+        android:id="@+id/btnMode"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:src="@drawable/mode_on" />

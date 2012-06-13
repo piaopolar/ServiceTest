@@ -36,11 +36,16 @@ public class CountService extends Service {
 		super.onCreate();
 
 		registerReceiver(new BroadcastReceiver() {
-
+			
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				
+
+				if (true)
+					return;
+
 				SharedPreferences settings;
+				
+				
 				settings  = getSharedPreferences("MyConfig", 0);
 				if (settings.getBoolean("Close Wifi", true)) {
 
@@ -49,6 +54,8 @@ public class CountService extends Service {
 						wifiManager.setWifiEnabled(false);
 					}
 				}
+				
+				
 				
 				ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 
