@@ -88,58 +88,11 @@ public class ServiceTestActivity extends Activity {
 		findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 
-				Lock(v);
-
-				//
-				// Intent SecondPage = new Intent(ServiceTestActivity.this,
-				// SettingActivity.class);
-				// startActivity(SecondPage);
+				 Intent SecondPage = new Intent(ServiceTestActivity.this,
+				 SettingActivity.class);
+				 startActivity(SecondPage);
 			}
 		});
-	}
-
-	@Override
-	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-		if (REQUEST_ENABLE == requestCode) {
-			if (resultCode == Activity.RESULT_OK) {
-				DevicePolicyManager policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-				ComponentName componentName = new ComponentName(this,
-						AdminReceiver.class);
-
-				boolean active = policyManager.isAdminActive(componentName);
-				if (active) {
-					policyManager.lockNow();
-				}
-			} else {
-			}
-		}
-	}
-
-	public void Lock(View view) {
-		DevicePolicyManager policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
-		ComponentName componentName = new ComponentName(this,
-				AdminReceiver.class);
-
-		boolean active = policyManager.isAdminActive(componentName);
-
-		if (!active) {
-
-			// 启动设备管理(隐式Intent) - 在AndroidManifest.xml中设定相应过滤器
-			Intent intent = new Intent(
-					DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-
-			// 权限列表
-			intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN,
-					componentName);
-
-			// 描述(additional explanation)
-			intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-					"------ 其他描述 ------");
-
-			startActivityForResult(intent, REQUEST_ENABLE);
-		} else {
-			policyManager.lockNow();// 直接锁屏
-		}
 	}
 
 	protected void onResume() {

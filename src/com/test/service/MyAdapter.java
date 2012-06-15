@@ -59,7 +59,7 @@ public class MyAdapter extends BaseAdapter {
 		// …Ë÷√≥Ã–Ú√˚
 		holder.title.setText(pUtils.getProgramName());
         
-        holder.cBox.setChecked(pUtils.bAutoClose);    
+        holder.cBox.setChecked(pUtils.bAutoClose); 
         return convertView;    
     }    
     
