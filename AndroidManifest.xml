@@ -19,6 +19,7 @@
         <receiver android:name=".Desktops" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+           		<action android:name="lock_scr"></action>  
             </intent-filter>
 
             <meta-data
