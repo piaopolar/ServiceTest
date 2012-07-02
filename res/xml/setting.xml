@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android" >
+
+    <PreferenceCategory
+        android:key="title_scr_off"
+        android:title="@string/title_scr_off" >
+        <CheckBoxPreference
+            android:key="scr_off_clean_switch"
+            android:title="@string/scr_off_clean" />
+
+        <ListPreference
+            android:defaultValue="0"
+            android:entries="@array/scr_off_clean_delay_title"
+            android:entryValues="@array/scr_off_clean_delay_value"
+            android:key="scr_off_clean_delay"
+            android:title="@string/scr_off_clean_delay" />
+    </PreferenceCategory>
+    <PreferenceCategory
+        android:key="title_clean"
+        android:title="@string/title_clean" >
+        <CheckBoxPreference
+            android:key="clean_close_wifi_switch"
+            android:title="@string/close_wifi" />
+        <CheckBoxPreference
+            android:key="clean_close_bluetooth_switch"
+            android:title="@string/close_bluetooth" />
+        <CheckBoxPreference
+            android:key="clean_close_23G_switch"
+            android:title="@string/close_23G" />
+    </PreferenceCategory>
+    <PreferenceCategory android:title="@string/title_other" >
+        <CheckBoxPreference
+            android:key="boot_start_switch"
+            android:title="@string/boot_start" />
+        <CheckBoxPreference
+            android:key="req_admin_switch"
+            android:summary="@string/req_admin_summary"
+            android:title="@string/req_admin" />
+    </PreferenceCategory>
+
+</PreferenceScreen>

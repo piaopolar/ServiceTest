@@ -7,15 +7,19 @@ import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.List;
 
+import android.annotation.SuppressLint;
 import android.app.ActivityManager;
 import android.app.Service;
 import android.app.ActivityManager.RunningAppProcessInfo;
+import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager.NameNotFoundException;
+import android.content.res.Resources;
 import android.net.wifi.WifiManager;
 import android.os.IBinder;
 import android.util.Log;
@@ -25,114 +29,66 @@ public class CountService extends Service {
 
 	private int count;
 	private boolean threadDisable;
+	private long time_close_process;
 
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;
 	}
 
+	@SuppressLint("ParserError")
 	@Override
 	public void onCreate() {
 		super.onCreate();
 
+		this.threadDisable = false;
+		time_close_process = 0;
+
 		registerReceiver(new BroadcastReceiver() {
-			
+
 			@Override
 			public void onReceive(Context context, Intent intent) {
 
-				if (true)
-					return;
+				SharedPreferences settingsName = getSharedPreferences("MyConfig", 0);
+				String strPreName = settingsName.getString("ConfigPrefName", "");
+				SharedPreferences settings = getSharedPreferences(strPreName, 0);
 
-				SharedPreferences settings;
-				
-				
-				settings  = getSharedPreferences("MyConfig", 0);
-				if (settings.getBoolean("Close Wifi", true)) {
+				Log.v("CountService", "Receive Scr Off");
 
-					WifiManager wifiManager = (WifiManager) context.getSystemService(Context.WIFI_SERVICE);
-					if (wifiManager.isWifiEnabled()) {
-						wifiManager.setWifiEnabled(false);
-					}
-				}
-				
-				
-				
-				ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+				if (settings.getBoolean("scr_off_clean_switch", false)) {
+					String strDelay = settings.getString("scr_off_clean_delay",
+							"0");
 
-				List<RunningAppProcessInfo> runningProcessList = null;
-
-				// 获取正在运行的进程列表
-				runningProcessList = activityManager.getRunningAppProcesses();
-				RunningAppProcessInfo procInfo = null;
-
-
-
-//				ActivityManager am = (ActivityManager) context.getSystemService(ACTIVITY_SERVICE);
-//				Method forceStopPackage;
-
-				
-
-				
-				PackageUtil packageUtil = new PackageUtil(context);
-				for (Iterator<RunningAppProcessInfo> iterator = runningProcessList
-						.iterator(); iterator.hasNext();) {
-					procInfo = iterator.next();
-					Boolean bAutoClose = settings.getBoolean(
-							procInfo.processName, false);
-
-					if (bAutoClose) {
-						Log.v("CountService", procInfo.processName + " true");
-						ApplicationInfo tempAppInfo = packageUtil
-								.getApplicationInfo(procInfo.processName);
-						if (tempAppInfo == null) {
-							return;
-						}
-
-						Log.v("CountService", "kill " + tempAppInfo.packageName
-								+ " true");
-						
-
-//						try {
-//							forceStopPackage = am.getClass().getDeclaredMethod("forceStopPackage", String.class);
-//							forceStopPackage.setAccessible(true);  
-//							forceStopPackage.invoke(am, tempAppInfo.packageName);
-//						} catch (SecurityException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						} catch (NoSuchMethodException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						} catch (IllegalArgumentException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						} catch (IllegalAccessException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						} catch (InvocationTargetException e) {
-//							// TODO Auto-generated catch block
-//							e.printStackTrace();
-//						}  
-
-						activityManager
-								.killBackgroundProcesses(tempAppInfo.packageName);
+					Log.v("CountService", strDelay);
+					int nDelay = Integer.parseInt(strDelay);
+					if (nDelay > 0) {
+						time_close_process = System.currentTimeMillis()
+								+ nDelay * 1000;
 					} else {
-						// Log.v("CountService", procInfo.processName +
-						// " false");
+						DoClean();
 					}
 				}
 			}
 		}, new IntentFilter(Intent.ACTION_SCREEN_OFF));
 
+		registerReceiver(new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				time_close_process = 0;
+			}
+		}, new IntentFilter(Intent.ACTION_SCREEN_ON));
+
 		new Thread(new Runnable() {
 
 			public void run() {
 				while (!threadDisable) {
-					// try {
-					// Thread.sleep(1000);
-					// } catch (InterruptedException e) {
-					// }
-					// count++;
-					// Log.v("CountService", "Count is " + count);
+					if (time_close_process > 0) {
+						long nTime = System.currentTimeMillis();
+						if (nTime > time_close_process) {
+							DoClean();
+						}
+					}
 				}
 			}
 		}).start();
@@ -147,6 +103,76 @@ public class CountService extends Service {
 
 	public int getCount() {
 		return count;
+	}
+
+	void showToast(Context context, CharSequence text) {
+		Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+	}
+
+	public static String getSharedPreferenceName(Context ctx, int prefResId) {
+		String packageName = ctx.getApplicationContext().getPackageName();
+		Resources res = ctx.getResources();
+		String entryName = res.getResourceEntryName(prefResId);
+		return packageName + "_" + entryName;
+	}
+
+	public void DoClean() {
+		SharedPreferences settingsMy = getSharedPreferences("MyConfig", 0);
+
+//		showToast(this, "DoClean");
+
+		Log.v("MyLog", "Try CloseProcess");
+
+		ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+
+		List<RunningAppProcessInfo> runningProcessList = null;
+		runningProcessList = activityManager.getRunningAppProcesses();
+		RunningAppProcessInfo procInfo = null;
+		PackageUtil packageUtil = new PackageUtil(this);
+		for (Iterator<RunningAppProcessInfo> iterator = runningProcessList
+				.iterator(); iterator.hasNext();) {
+			procInfo = iterator.next();
+			Boolean bAutoClose = settingsMy.getBoolean(procInfo.processName,
+					false);
+
+			if (bAutoClose) {
+				Log.v("CountService", procInfo.processName + " true");
+				ApplicationInfo tempAppInfo = packageUtil
+						.getApplicationInfo(procInfo.processName);
+				if (tempAppInfo == null) {
+					return;
+				}
+
+				Log.v("CountService", "kill " + tempAppInfo.packageName
+						+ " true");
+
+				activityManager
+						.killBackgroundProcesses(tempAppInfo.packageName);
+			}
+		}
+
+		Log.v("MyLog", "Try CloseWifi");
+
+		String strPreName = settingsMy.getString("ConfigPrefName", "");
+		SharedPreferences settings = getSharedPreferences(strPreName, 0);
+
+		if (settings.getBoolean("clean_close_wifi_switch", false)) {
+
+			WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
+			if (wifiManager.isWifiEnabled()) {
+				wifiManager.setWifiEnabled(false);
+			}
+		}
+
+		Log.v("MyLog", "Try CloseBlueTooth");
+
+		if (settings.getBoolean("clean_close_bluetooth_switch", false)) {
+			BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
+			int state = adapter.getState();
+			if (state == BluetoothAdapter.STATE_ON) {
+				adapter.disable();
+			}
+		}
 	}
 
 }

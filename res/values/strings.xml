@@ -7,5 +7,16 @@
     <string name="setting">Setting</string>
     <string name="service_on">Service On</string>
     <string name="back">back</string>
+    <string name="title_scr_off">闭屏</string>
+    <string name="scr_off_clean">闭屏清理</string>
+    <string name="scr_off_clean_delay">闭屏清理延时</string>
+    <string name="title_clean">清理选项</string>
+    <string name="close_wifi">关闭wifi</string>
+    <string name="close_bluetooth">关闭蓝牙</string>
+    <string name="close_23G">关闭2G/3G网络</string>
+    <string name="title_other">其他</string>
+    <string name="boot_start">开机启动服务</string>
+    <string name="req_admin">一键锁屏支持</string>
+    <string name="req_admin_summary">一键锁屏支持可能影响软件的卸载</string>
 
 </resources>

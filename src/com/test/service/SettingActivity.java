@@ -1,91 +1,68 @@
 package com.test.service;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import com.test.service.MyAdapter.ViewHolder;
-
-import android.app.Activity;
+import android.app.admin.DevicePolicyManager;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ApplicationInfo;
-import android.content.pm.PackageInfo;
 import android.os.Bundle;
-import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.AdapterView.OnItemClickListener;
+import android.preference.CheckBoxPreference;
+import android.preference.Preference;
+import android.preference.Preference.OnPreferenceClickListener;
+import android.preference.PreferenceActivity;
+import android.util.Log;
 
-public class SettingActivity extends Activity {
+public class SettingActivity extends PreferenceActivity implements
+		OnPreferenceClickListener {
 
-	static List<SettingNode> settingList = new ArrayList<SettingNode>();
-	SharedPreferences settings;
+	private CheckBoxPreference m_prefChkReq;
+	DevicePolicyManager policyManager;
+	ComponentName componentName;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.setting);
+		addPreferencesFromResource(R.xml.setting);
 
-		settings = getSharedPreferences("MyConfig", 0);
+		String preferencesName = this.getPreferenceManager()
+				.getSharedPreferencesName();
+		SharedPreferences settings = getSharedPreferences("MyConfig", 0);
+		SharedPreferences.Editor editor = settings.edit();
+		editor.putString("ConfigPrefName", preferencesName);
+		editor.commit();
 
-		ReflashSettingList();
-
-		ListView list = (ListView) findViewById(R.id.lstSetting);
-		list.setOnItemClickListener(new OnItemClickListener() {
-			public void onItemClick(AdapterView<?> parent, View view,
-					int position, long id) {
-				ViewHolder vHollder = (ViewHolder) view.getTag();
-				vHollder.cBox.toggle();
-				settingList.get(position).setSet(
-						!settingList.get(position).getSet());
-
-				SharedPreferences.Editor editor = settings.edit();
-				editor.putBoolean(settingList.get(position).getDesc(),
-						settingList.get(position).getSet());
-				editor.commit();
-
-				if (settingList.get(position).getDesc() == "Service On") {
-					if (settingList.get(position).getSet()) {
-						SettingActivity.this.startService(new Intent(
-								SettingActivity.this, CountService.class));
-					} else {
-						SettingActivity.this.stopService(new Intent(
-								SettingActivity.this, CountService.class));
-					}
-				}
-			}
-		});
-
-		findViewById(R.id.btnBack).setOnClickListener(new OnClickListener() {
-			public void onClick(View v) {
-
-				Intent SecondPage = new Intent(SettingActivity.this,
-						ServiceTestActivity.class);
-				startActivity(SecondPage);
-			}
-		});
 	}
 
-	public void ReflashSettingList() {
+	protected void onResume() {
 
-		settingList.clear();
+		policyManager = (DevicePolicyManager) getSystemService(Context.DEVICE_POLICY_SERVICE);
+		componentName = new ComponentName(this, AdminReceiver.class);
 
-		SettingNode node = new SettingNode();
-		node.setDesc("Service On");
-		node.setSet(settings.getBoolean(node.getDesc(), true));
-		settingList.add(node);
+		boolean active = policyManager.isAdminActive(componentName);
 
-		node = new SettingNode();
-		node.setDesc("Close Wifi");
-		node.setSet(settings.getBoolean(node.getDesc(), true));
-		settingList.add(node);
+		m_prefChkReq = (CheckBoxPreference) findPreference("req_admin_switch");
+		m_prefChkReq.setOnPreferenceClickListener(this);
+		m_prefChkReq.setChecked(active);
+		super.onResume();
+		Log.v("CountService", "onResume");
+	}
 
-		ListView list = (ListView) findViewById(R.id.lstSetting);
-		SettingAdapter adapter = new SettingAdapter(this, settingList);
-		list.setAdapter(adapter);
-		// list.setItemsCanFocus(false);
-		// list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE);
+	public boolean onPreferenceClick(Preference preference) {
+		if (preference == m_prefChkReq) {
+			boolean active = policyManager.isAdminActive(componentName);
+			if (active) {
+				policyManager.removeActiveAdmin(componentName);
+			} else {
+				Intent intent = new Intent(
+						DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
+				intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN,
+						componentName);
+				intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
+						"One key lock screen need to active");
+				startActivity(intent);
+			}
+		}
+
+		return true;
 	}
 }

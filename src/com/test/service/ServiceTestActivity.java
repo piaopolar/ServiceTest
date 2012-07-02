@@ -46,9 +46,14 @@ public class ServiceTestActivity extends Activity {
 		setContentView(R.layout.main);
 
 		settings = getSharedPreferences("MyConfig", 0);
+		String strPreName = settings.getString("ConfigPrefName", "");
+		SharedPreferences settingsConfig = getSharedPreferences(strPreName, 0);
 
-		if (settings.getBoolean("Service On", true)) {
-			// this.startService(new Intent(this, CountService.class));
+		if (settingsConfig.getBoolean("scr_off_clean_switch", false)) {
+			this.startService(new Intent(this, CountService.class));
+			// Intent intent = new Intent(arg0, CountService.class);
+			// intent.setAction(".com.test.service");
+			// arg0.startService(intent);
 		}
 
 		ListView list = (ListView) findViewById(R.id.lv);
@@ -88,10 +93,9 @@ public class ServiceTestActivity extends Activity {
 		findViewById(R.id.setting).setOnClickListener(new OnClickListener() {
 			public void onClick(View v) {
 
-				Lock(ServiceTestActivity.this);
-//				 Intent SecondPage = new Intent(ServiceTestActivity.this,
-//				 SettingActivity.class);
-//				 startActivity(SecondPage);
+				Intent SecondPage = new Intent(ServiceTestActivity.this,
+						SettingActivity.class);
+				startActivity(SecondPage);
 			}
 		});
 	}
@@ -110,37 +114,8 @@ public class ServiceTestActivity extends Activity {
 			} else {
 			}
 		}
-	}	
-	
-	
-	public void Lock(Context paramContext) {
-		DevicePolicyManager policyManager = (DevicePolicyManager) paramContext.getSystemService(Context.DEVICE_POLICY_SERVICE);
-		ComponentName componentName = new ComponentName(paramContext,
-				AdminReceiver.class);
-
-		boolean active = policyManager.isAdminActive(componentName);
-
-		if (!active) {
-
-			// 启动设备管理(隐式Intent) - 在AndroidManifest.xml中设定相应过滤器
-			Intent intent = new Intent(
-					DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN);
-
-			// 权限列表
-			intent.putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN,
-					componentName);
-
-			// 描述(additional explanation)
-			intent.putExtra(DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-					"------ 其他描述 ------");
-
-			startActivity(intent);
-//			startActivityForResult(intent, REQUEST_ENABLE);
-		} else {
-			policyManager.lockNow();// 直接锁屏
-		}
 	}
-	
+
 	protected void onResume() {
 
 		ReflashProcList();
