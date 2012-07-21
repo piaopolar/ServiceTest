@@ -109,47 +109,11 @@ public class CountService extends Service {
 		Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 	}
 
-	public static String getSharedPreferenceName(Context ctx, int prefResId) {
-		String packageName = ctx.getApplicationContext().getPackageName();
-		Resources res = ctx.getResources();
-		String entryName = res.getResourceEntryName(prefResId);
-		return packageName + "_" + entryName;
-	}
 
 	public void DoClean() {
 		SharedPreferences settingsMy = getSharedPreferences("MyConfig", 0);
 
 //		showToast(this, "DoClean");
-
-		Log.v("MyLog", "Try CloseProcess");
-
-		ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-
-		List<RunningAppProcessInfo> runningProcessList = null;
-		runningProcessList = activityManager.getRunningAppProcesses();
-		RunningAppProcessInfo procInfo = null;
-		PackageUtil packageUtil = new PackageUtil(this);
-		for (Iterator<RunningAppProcessInfo> iterator = runningProcessList
-				.iterator(); iterator.hasNext();) {
-			procInfo = iterator.next();
-			Boolean bAutoClose = settingsMy.getBoolean(procInfo.processName,
-					false);
-
-			if (bAutoClose) {
-				Log.v("CountService", procInfo.processName + " true");
-				ApplicationInfo tempAppInfo = packageUtil
-						.getApplicationInfo(procInfo.processName);
-				if (tempAppInfo == null) {
-					return;
-				}
-
-				Log.v("CountService", "kill " + tempAppInfo.packageName
-						+ " true");
-
-				activityManager
-						.killBackgroundProcesses(tempAppInfo.packageName);
-			}
-		}
 
 		Log.v("MyLog", "Try CloseWifi");
 

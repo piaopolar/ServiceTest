@@ -95,37 +95,6 @@ public class Desktops extends AppWidgetProvider {
 
 		showToast(paramContext, "DoClean");
 
-		Log.v("MyLog", "Try CloseProcess");
-
-		ActivityManager activityManager = (ActivityManager) paramContext
-				.getSystemService(Context.ACTIVITY_SERVICE);
-
-		List<RunningAppProcessInfo> runningProcessList = null;
-		runningProcessList = activityManager.getRunningAppProcesses();
-		RunningAppProcessInfo procInfo = null;
-		PackageUtil packageUtil = new PackageUtil(paramContext);
-		for (Iterator<RunningAppProcessInfo> iterator = runningProcessList
-				.iterator(); iterator.hasNext();) {
-			procInfo = iterator.next();
-			Boolean bAutoClose = settingsMy.getBoolean(procInfo.processName,
-					false);
-
-			if (bAutoClose) {
-				Log.v("CountService", procInfo.processName + " true");
-				ApplicationInfo tempAppInfo = packageUtil
-						.getApplicationInfo(procInfo.processName);
-				if (tempAppInfo == null) {
-					return;
-				}
-
-				Log.v("CountService", "kill " + tempAppInfo.packageName
-						+ " true");
-
-				activityManager
-						.killBackgroundProcesses(tempAppInfo.packageName);
-			}
-		}
-
 		Log.v("MyLog", "Try CloseWifi");
 
 		String strPreName = settingsMy.getString("ConfigPrefName", "");
