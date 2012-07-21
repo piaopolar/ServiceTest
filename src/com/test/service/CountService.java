@@ -27,11 +27,11 @@ import android.widget.Toast;
 
 public class CountService extends Service {
 
-	private int count;
 	private boolean threadDisable;
 	private long time_close_process;
 	private BroadcastReceiver scr_off_receiver;
 	private BroadcastReceiver scr_on_receiver;
+	private BroadcastReceiver clean_receiver;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -65,9 +65,11 @@ public class CountService extends Service {
 					Log.v("CountService", strDelay);
 					int nDelay = Integer.parseInt(strDelay);
 					if (nDelay > 0) {
+						Log.v("CountService", "Delay DoClean");
 						time_close_process = System.currentTimeMillis()
 								+ nDelay * 1000;
 					} else {
+						Log.v("CountService", "Imm DoClean");
 						DoClean();
 					}
 				}
@@ -88,14 +90,37 @@ public class CountService extends Service {
 		registerReceiver(scr_on_receiver, new IntentFilter(
 				Intent.ACTION_SCREEN_ON));
 
+		clean_receiver = new BroadcastReceiver() {
+
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				DoClean();
+			}
+		};
+		
+		registerReceiver(clean_receiver, new IntentFilter(
+				"com.banana.powerSaver.clean"));
+
 		new Thread(new Runnable() {
 
 			public void run() {
 				while (!threadDisable) {
-					if (time_close_process > 0) {
+					if (time_close_process > 1) {
 						long nTime = System.currentTimeMillis();
-						if (nTime > time_close_process) {
-							DoClean();
+						// String strCountDown = String
+						// .valueOf((time_close_process - nTime) / 1000);
+						// Log.v("CountService", strCountDown);
+						if (nTime > time_close_process
+								&& time_close_process > 1) {
+							Log.v("CountService",
+									"nTime" + ":" + String.valueOf(nTime));
+							Log.v("CountService", "time_close_process" + ":"
+									+ String.valueOf(time_close_process));
+							Log.v("CountService", "CountDown DoClean");
+							Intent intent = new Intent("com.banana.powerSaver.clean");
+							intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+							sendBroadcast(intent);
+							time_close_process = 0;
 						}
 					}
 				}
@@ -113,10 +138,6 @@ public class CountService extends Service {
 		super.onDestroy();
 	}
 
-	public int getCount() {
-		return count;
-	}
-
 	void showToast(Context context, CharSequence text) {
 		Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 	}
@@ -124,9 +145,7 @@ public class CountService extends Service {
 	public void DoClean() {
 		SharedPreferences settingsMy = getSharedPreferences("MyConfig", 0);
 
-		// showToast(this, "DoClean");
-
-		Log.v("MyLog", "Try CloseWifi");
+		Log.v("CountService", "CountDown Try CloseWifi");
 
 		String strPreName = settingsMy.getString("ConfigPrefName", "");
 		SharedPreferences settings = getSharedPreferences(strPreName, 0);
@@ -134,20 +153,26 @@ public class CountService extends Service {
 		if (settings.getBoolean("clean_close_wifi_switch", false)) {
 
 			WifiManager wifiManager = (WifiManager) getSystemService(Context.WIFI_SERVICE);
-			if (wifiManager.isWifiEnabled()) {
+			if (wifiManager != null && wifiManager.isWifiEnabled()) {
 				wifiManager.setWifiEnabled(false);
 			}
 		}
 
-		Log.v("MyLog", "Try CloseBlueTooth");
+		Log.v("CountService", "CountDown Try CloseBlueTooth");
 
 		if (settings.getBoolean("clean_close_bluetooth_switch", false)) {
-			BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
-			int state = adapter.getState();
-			if (state == BluetoothAdapter.STATE_ON) {
-				adapter.disable();
+			BluetoothAdapter adapter;
+			try {
+				adapter = BluetoothAdapter.getDefaultAdapter();
+				if (adapter != null) {
+					int state = adapter.getState();
+					if (state == BluetoothAdapter.STATE_ON) {
+						adapter.disable();
+					}
+				}
+			} catch (Exception e) {
+				Log.v("CountService", e.getMessage());
 			}
 		}
 	}
-
 }

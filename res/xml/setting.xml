@@ -24,9 +24,6 @@
         <CheckBoxPreference
             android:key="clean_close_bluetooth_switch"
             android:title="@string/close_bluetooth" />
-        <CheckBoxPreference
-            android:key="clean_close_23G_switch"
-            android:title="@string/close_23G" />
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/title_other" >
         <CheckBoxPreference

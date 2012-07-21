@@ -95,7 +95,7 @@ public class Desktops extends AppWidgetProvider {
 
 		showToast(paramContext, "DoClean");
 
-		Log.v("MyLog", "Try CloseWifi");
+		Log.v("CountService", "Desktop Try CloseWifi");
 
 		String strPreName = settingsMy.getString("ConfigPrefName", "");
 		SharedPreferences settings = paramContext.getSharedPreferences(
@@ -110,7 +110,7 @@ public class Desktops extends AppWidgetProvider {
 			}
 		}
 
-		Log.v("MyLog", "Try CloseBlueTooth");
+		Log.v("CountService", "Desktop Try CloseBlueTooth");
 
 		if (settings.getBoolean("clean_close_bluetooth_switch", false)) {
 			BluetoothAdapter adapter = BluetoothAdapter.getDefaultAdapter();
