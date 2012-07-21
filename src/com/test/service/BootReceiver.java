@@ -23,7 +23,7 @@ public class BootReceiver extends BroadcastReceiver {
 			SharedPreferences settings = arg0.getSharedPreferences(strPreName,
 					0);
 
-			if (settings.getBoolean("boot_start_switch", false)) {
+			if (settings.getBoolean("scr_off_clean_switch", false)) {
 				Intent intent = new Intent(arg0, CountService.class);
 				intent.setAction(".com.test.service");
 				arg0.startService(intent);

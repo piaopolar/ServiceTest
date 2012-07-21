@@ -30,9 +30,6 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/title_other" >
         <CheckBoxPreference
-            android:key="boot_start_switch"
-            android:title="@string/boot_start" />
-        <CheckBoxPreference
             android:key="req_admin_switch"
             android:summary="@string/req_admin_summary"
             android:title="@string/req_admin" />

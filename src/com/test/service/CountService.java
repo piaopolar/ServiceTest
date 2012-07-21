@@ -30,6 +30,8 @@ public class CountService extends Service {
 	private int count;
 	private boolean threadDisable;
 	private long time_close_process;
+	private BroadcastReceiver scr_off_receiver;
+	private BroadcastReceiver scr_on_receiver;
 
 	@Override
 	public IBinder onBind(Intent intent) {
@@ -44,13 +46,14 @@ public class CountService extends Service {
 		this.threadDisable = false;
 		time_close_process = 0;
 
-		registerReceiver(new BroadcastReceiver() {
-
+		scr_off_receiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
 
-				SharedPreferences settingsName = getSharedPreferences("MyConfig", 0);
-				String strPreName = settingsName.getString("ConfigPrefName", "");
+				SharedPreferences settingsName = getSharedPreferences(
+						"MyConfig", 0);
+				String strPreName = settingsName
+						.getString("ConfigPrefName", "");
 				SharedPreferences settings = getSharedPreferences(strPreName, 0);
 
 				Log.v("CountService", "Receive Scr Off");
@@ -69,15 +72,21 @@ public class CountService extends Service {
 					}
 				}
 			}
-		}, new IntentFilter(Intent.ACTION_SCREEN_OFF));
+		};
 
-		registerReceiver(new BroadcastReceiver() {
+		registerReceiver(scr_off_receiver, new IntentFilter(
+				Intent.ACTION_SCREEN_OFF));
+
+		scr_on_receiver = new BroadcastReceiver() {
 
 			@Override
 			public void onReceive(Context context, Intent intent) {
 				time_close_process = 0;
 			}
-		}, new IntentFilter(Intent.ACTION_SCREEN_ON));
+		};
+
+		registerReceiver(scr_on_receiver, new IntentFilter(
+				Intent.ACTION_SCREEN_ON));
 
 		new Thread(new Runnable() {
 
@@ -96,9 +105,12 @@ public class CountService extends Service {
 
 	@Override
 	public void onDestroy() {
-		super.onDestroy();
+		unregisterReceiver(scr_off_receiver);
+		unregisterReceiver(scr_on_receiver);
+
 		this.threadDisable = true;
 		Log.v("CountService", "on destroy");
+		super.onDestroy();
 	}
 
 	public int getCount() {
@@ -109,11 +121,10 @@ public class CountService extends Service {
 		Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
 	}
 
-
 	public void DoClean() {
 		SharedPreferences settingsMy = getSharedPreferences("MyConfig", 0);
 
-//		showToast(this, "DoClean");
+		// showToast(this, "DoClean");
 
 		Log.v("MyLog", "Try CloseWifi");
 
